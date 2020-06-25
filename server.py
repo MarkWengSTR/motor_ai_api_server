@@ -41,6 +41,8 @@ def motor_ai():
 
         print(response.status_code, response.json())
         return jsonify(ctx["success_response"])
+        # for local test
+        # return jsonify(ctx["response"])
     else:
         return jsonify(ctx["error"]["validate"])
 
