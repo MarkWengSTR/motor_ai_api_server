@@ -4,6 +4,8 @@ from validate import spec_present, data_type_validate, spec_keys_validate
 import requests
 from threading import Thread
 from result import result_process
+from ai_server.anasys_test import ai_train
+
 # debug
 # import ipdb; ipdb.set_trace()
 
@@ -29,9 +31,14 @@ class BackgroundProcess(Thread):
 
     def run(self):
         ctx = self.ctx
-        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
-        print(response.status_code)
+        ai_train(ctx["request"]) and \
+            result_process(ctx)
+
+        print(ctx["response"])
+        # response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+
+        # print(response.status_code)
 
 @app.route('/motor_ai', methods=["POST"])
 def motor_ai():
@@ -46,9 +53,14 @@ def motor_ai():
 
     if spec_present(ctx) and \
             data_type_validate(ctx) and \
-            spec_keys_validate(ctx) and \
-            result_process(ctx):
+            spec_keys_validate(ctx):
         # send result to url in spec
+        ctx["request"] = {
+            **ctx["request"],
+                "stator_OD": 70,
+                "motor_length": 200,
+                "coil_turn":5
+        }
         thread_a = BackgroundProcess(ctx)
         thread_a.start()
         # for local test
