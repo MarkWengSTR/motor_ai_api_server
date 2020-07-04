@@ -2,7 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from validate import spec_present, data_type_validate, spec_keys_validate
 import requests
+from threading import Thread
 from result import result_process
+import time
 # debug
 # import ipdb; ipdb.set_trace()
 
@@ -21,11 +23,22 @@ from result import result_process
 app = Flask(__name__)
 CORS(app)  # local development cors
 
+class BackgroundProcess(Thread):
+    def __init__(self, ctx):
+        Thread.__init__(self)
+        self.ctx = ctx
+
+    def run(self):
+        ctx = self.ctx
+        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+
+        print(response.status_code)
+
 @app.route('/motor_ai', methods=["POST"])
 def motor_ai():
     ctx = {
         "request": request.get_json(),
-        "success_response": {"msg": "finish run"},
+        "success_response": {"msg": "start run at background"},
         "error": {
             "validate": {"msg": ""}
             },
@@ -37,16 +50,15 @@ def motor_ai():
             spec_keys_validate(ctx) and \
             result_process(ctx):
         # send result to url in spec
-        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
-
-        print(response.status_code, response.json())
-        return jsonify(ctx["success_response"])
+        thread_a = BackgroundProcess(ctx)
+        thread_a.start()
         # for local test
         # return jsonify(ctx["response"])
     else:
         return jsonify(ctx["error"]["validate"])
 
+    return jsonify(ctx["success_response"])
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

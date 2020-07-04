@@ -1,0 +1,18 @@
+環境需求:
+
+1.pip install keras
+2.pip install numpy
+3.pip install pandas
+
+------------------------------------------------
+
+1.執行main.py
+
+2.input為POST.json
+
+3.output為RESPONSE.json
+(目前只有輸出['corner_point']["efficiency"]跟
+  	     ['corner_point']['torque_ripple']
+即效率值跟漣波，其他的後續再擴充)
+
+
