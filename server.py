@@ -4,7 +4,6 @@ from validate import spec_present, data_type_validate, spec_keys_validate
 import requests
 from threading import Thread
 from result import result_process
-import time
 # debug
 # import ipdb; ipdb.set_trace()
 
@@ -38,7 +37,7 @@ class BackgroundProcess(Thread):
 def motor_ai():
     ctx = {
         "request": request.get_json(),
-        "success_response": {"msg": "start run at background"},
+        "run_background_response": {"msg": "start run at background"},
         "error": {
             "validate": {"msg": ""}
             },
@@ -57,7 +56,7 @@ def motor_ai():
     else:
         return jsonify(ctx["error"]["validate"])
 
-    return jsonify(ctx["success_response"])
+    return jsonify(ctx["run_background_response"])
 
 
 if __name__ == "__main__":
