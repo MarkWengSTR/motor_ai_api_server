@@ -3,11 +3,14 @@ import numpy as np
 import math
 import os
 
+result_file='ai_server/predict_result.npy'
 
 def np_rms(arr):
     return np.sqrt((arr ** 2).sum() / arr.size)
 
 def result_process(ctx):
+    train_result = np.load('ai_server/predict_result.npy')
+
     result_ctx = {
         "data_path": os.path.join(os.getcwd(), "example_data"),
         "total_step": 50,
@@ -33,12 +36,12 @@ def result_process(ctx):
                 "speed": 2865,
                 "torque_data": [],
                 "avg_torque": None,
-                "torque_ripple": 3.5918246136292034,
+                "torque_ripple": float(train_result[0][1]),
                 "line_voltage_rms": None,
                 "core_loss": None,
                 "core_loss_factor": 1,
                 "copper_loss": None,
-                "efficiency": 98.43,
+                "efficiency": float(train_result[0][0]),
                 "output_power": None,
                 "current_density": None,
             },
