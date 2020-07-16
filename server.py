@@ -28,17 +28,27 @@ def motor_ai():
 
     ctx = {
         "request": ori_request_data,
-        "data": {
+        "ai_data": {
             **ori_request_data,
-                "stator_OD": 70,
-                "motor_length": 200,
-                "coil_turn":5,
+                "max_power": 4000,
+                "copper_loss": 200,
+                "eff":0.9,
+                "Vrms":41,
+                "Torque_ripple":0.02
         },
+
         "error": {
             "validate": {"msg": ""}
             },
         "response":{
-            "pj_key": ori_request_data["pj_key"],
+            "ai_response":{
+                "am":None,
+                "delta":None,
+                "R1":None,
+                "wmt":None,
+                "wmw":None
+                },
+            "pj_key": ori_request_data,
             "stator_OD": 70,
             "motor_length": 200,
             "coil_turn":5,
@@ -85,12 +95,12 @@ def motor_ai():
             result_process(ctx)
 
         # send result to url in spec
-        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+#        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
-        print(response.status_code)
+#        print(response.status_code)
 
         # for local test
-        return jsonify(ctx["response"])
+        return jsonify(ctx["response"]) 
     else:
         return jsonify(ctx["error"]["validate"])
 
