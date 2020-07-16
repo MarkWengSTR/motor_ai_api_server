@@ -26,7 +26,12 @@ def spec_keys_validate(ctx):
              "max_speed_rpm",
              "export_path",
              "pj_key",
-             "res_url"]):
+             "res_url",
+             "copper_loss",
+             "eff",
+             "Vrms",
+             "Torque_ripple"
+             ]):
         return True
     else:
         ctx["error"]["validate"]["msg"] = "not validate keys"

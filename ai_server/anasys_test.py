@@ -20,7 +20,7 @@ def do_zscore(dataset, save_path="zscore.txt"):
 
 
 def ai_train(ctx):
-    json_data = ctx["data"]
+    json_data = ctx
 
     os.chdir('ai_server')
     model_save_path = "model/"
@@ -30,8 +30,8 @@ def ai_train(ctx):
     # with open(POST_json) as f:
     #     json_data = json.load(f)
 
-    Input_quantity = 3
-    Output_quantity = 2
+    Input_quantity = 5
+    Output_quantity = 5
     """
     f = open(train_file, "r")
     row = f.readlines()
@@ -90,25 +90,33 @@ def ai_train(ctx):
     model.fit(trainX, trainY, epochs=1000, verbose=1, validation_data=[testX, testY],
                       callbacks=[early_stopping, model_save_checkpoint, log_save_checkpoint])
     """
-    mean_std_X = np.loadtxt("zscore_X.txt")
-    mean_std_Y = np.loadtxt("zscore_Y.txt")
+    mean_std_X = np.loadtxt(model_save_path+"zscore_X.txt")
+    mean_std_Y = np.loadtxt(model_save_path+"zscore_Y.txt")
 
     predict_X = np.array([
-        float(json_data["stator_OD"]),
-        float(json_data["motor_length"]),
-        float(json_data["coil_turn"])
+        float(json_data["request"]["max_power"]),
+        float(json_data["request"]["copper_loss"]),
+        float(json_data["request"]["eff"]),
+        float(json_data["request"]["Vrms"]),
+        float(json_data["request"]["Torque_ripple"])
     ]).reshape(1, -1)
 
     predict_X -= mean_std_X[0]
     predict_X /= mean_std_X[1]
 
-    print(predict_X)
+    #print(predict_X)
 
     predict_Y = model.predict(predict_X).reshape(1, -1)
     predict_Y *= mean_std_Y[1]
     predict_Y += mean_std_Y[0]
 
-    print(predict_Y)
+    ctx["response"]["ai_response"]["am"]=float(predict_Y[0][0])
+    ctx["response"]["ai_response"]["delta"]=float(predict_Y[0][1])
+    ctx["response"]["ai_response"]["R1"]=float(predict_Y[0][2])
+    ctx["response"]["ai_response"]["wmw"]=float(predict_Y[0][3])
+    ctx["response"]["ai_response"]["wmt"]=float(predict_Y[0][4])
+    
+   # print(ctx["response"]["ai_response"])
 
     predict_result_file = "predict_result"
     np.save(predict_result_file, predict_Y)
