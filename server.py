@@ -95,12 +95,12 @@ def motor_ai():
             result_process(ctx)
 
         # send result to url in spec
-#        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+       response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
-#        print(response.status_code)
+       print(response.status_code)
 
         # for local test
-        return jsonify(ctx["response"]) 
+        return jsonify(ctx["response"])
     else:
         return jsonify(ctx["error"]["validate"])
 
