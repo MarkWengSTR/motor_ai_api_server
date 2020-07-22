@@ -19,109 +19,132 @@ def do_zscore(dataset, save_path="zscore.txt"):
     return dataset
 
 
+
+
+
+
+
 def ai_train(ctx):
-    json_data = ctx
+		
+	request_json=ctx
+	
+	if os.getcwd()[-9:]!='ai_server':
+		os.chdir('ai_server')
+		
+		
+	model_save_path = "model/"
+	
+	model_config_json = model_save_path+"model_config.json"
+	with open(model_config_json) as f:
+	  model_config = json.load(f)
 
-    os.chdir('ai_server')
-    model_save_path = "model/"
-    #train_file = "Torque Plot eff2.csv"
-    # POST_json = "POST.json"
+	model_name = model_save_path + 'Ansys_test_01.h5'
+	loss_name = model_save_path + 'Ansys_test_loss_01.csv'
+	#
+	model_save_checkpoint = ModelCheckpoint(model_name,  # 要儲存的路徑
+											monitor='val_loss',  # 要監控的目標
+											verbose=1,
+											save_best_only=True,  # 儲存最好的模型權重
+											period=2)  # 多久監控一次
+	#
+	log_save_checkpoint = CSVLogger(loss_name, separator=',', append=False)
+	#
+	early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=2)
 
-    # with open(POST_json) as f:
-    #     json_data = json.load(f)
 
-    Input_quantity = 5
-    Output_quantity = 5
-    """
-    f = open(train_file, "r")
-    row = f.readlines()
-    f.close()
+	model = Sequential()
+	model.add(Dense(1000, input_shape=(model_config["input_nodes_quantity"],)))
+	model.add(Dense(1000))
+	model.add(Dense(model_config["output_nodes_quantity"]))
+	model.compile(loss='mse', optimizer='adam')
 
-    row = row[:3]
-    data_Y = []
 
-    for i in range(len(row)):
-            row[i] = row[i].split(",")[1:]
-            row[i][-1] = row[i][-1][:-2]
+	mean_std_X = np.loadtxt(model_save_path+"zscore_X.txt")
+	mean_std_Y = np.loadtxt(model_save_path+"zscore_Y.txt")
 
-            if i == 2:
-                    for j in range(len(row[i])):
-                            temp = row[i][j].split("'")
-                            temp2 = [temp[1][:-2], temp[3][:-2], temp[5]]
-                            data_Y.append(temp2)
+	predict_X = np.array([
+						 float(ctx["request"]["max_power"]),
+						 float(ctx["request"]["eff"]),
+						 float(ctx["request"]["Vrms"]),
+						 float(ctx["request"]["Torque_ripple"])
+	]).reshape(1, -1)
+	
+	predict_X -= mean_std_X[0]
+	predict_X /= mean_std_X[1]
+	
+	
 
-    data_X = np.array(data_Y).astype(np.float)
+	predict_Y = model.predict(predict_X).reshape(1, -1)
+	predict_Y *= mean_std_Y[1]
+	predict_Y += mean_std_Y[0]
 
-    data_Y = np.array(row[:2]).T.astype(np.float)
+	ctx["response"]["ai_response"]["am"]=float(predict_Y[0][0])
+	ctx["response"]["ai_response"]["delta"]=float(predict_Y[0][1])
+	ctx["response"]["ai_response"]["R1"]=float(predict_Y[0][2])
+	ctx["response"]["ai_response"]["wmt"]=float(predict_Y[0][3])
+	ctx["response"]["ai_response"]["wmw"]=float(predict_Y[0][4])
 
-    data_X_zscore = do_zscore(data_X, save_path="zscore_X.txt")
+#-------check-------
 
-    data_Y_zscore = do_zscore(data_Y, save_path="zscore_Y.txt")
 
-    msk = np.random.rand(len(data_X)) < 0.8
-    trainX = data_X_zscore[msk]
-    testX = data_X_zscore[~msk]
+	check_input_list=["max_power","eff","Vrms","Torque_ripple"]
+	
+	for check_point in check_input_list:
+		if model_config["input_nodes"][check_point]["max"]<ctx["request"][check_point] or model_config["input_nodes"][check_point]["min"]>ctx["request"][check_point]:
+			ctx["response"]["ai_response"]["Warning"] +=str(check_point) + " out of training range(max:"+str(model_config["input_nodes"][check_point]["max"]) + ", min:"+str(model_config["input_nodes"][check_point]["min"])+")\n"
+			
+	check_output_list=["am","delta","R1","wmw","wmt"]
 
-    trainY = data_Y_zscore[msk]
-    testY = data_Y_zscore[~msk]
-    """
+	for check_point in check_output_list:
+		if model_config["output_nodes"][check_point]["max"]<ctx["response"]["ai_response"][check_point] or model_config["output_nodes"][check_point]["min"]>ctx["response"]["ai_response"][check_point]:
+			ctx["response"]["ai_response"]["Warning"] +=str(check_point) + " out of training range(max:"+str(model_config["output_nodes"][check_point]["max"]) + ", min:"+str(model_config["output_nodes"][check_point]["min"])+")\n"
 
-    model_name = model_save_path + 'Ansys_test_01.h5'
-    loss_name = model_save_path + 'Ansys_test_loss_01.csv'
-    #
-    model_save_checkpoint = ModelCheckpoint(model_name,  # 要儲存的路徑
-                                            monitor='val_loss',  # 要監控的目標
-                                            verbose=1,
-                                            save_best_only=True,  # 儲存最好的模型權重
-                                            period=2)  # 多久監控一次
-    #
-    log_save_checkpoint = CSVLogger(loss_name, separator=',', append=False)
-    #
-    early_stopping = EarlyStopping(
-        monitor='val_loss', patience=10, verbose=2)
 
-    model = Sequential()
-    model.add(Dense(1000, input_shape=(Input_quantity,)))
-    model.add(Dense(1000))
-    model.add(Dense(Output_quantity))
-    model.compile(loss='mse', optimizer='adam')
 
-    """
-    model.fit(trainX, trainY, epochs=1000, verbose=1, validation_data=[testX, testY],
-                      callbacks=[early_stopping, model_save_checkpoint, log_save_checkpoint])
-    """
-    mean_std_X = np.loadtxt(model_save_path+"zscore_X.txt")
-    mean_std_Y = np.loadtxt(model_save_path+"zscore_Y.txt")
 
-    predict_X = np.array([
-        float(json_data["request"]["max_power"]),
-        float(json_data["request"]["copper_loss"]),
-        float(json_data["request"]["eff"]),
-        float(json_data["request"]["Vrms"]),
-        float(json_data["request"]["Torque_ripple"])
-    ]).reshape(1, -1)
 
-    predict_X -= mean_std_X[0]
-    predict_X /= mean_std_X[1]
 
-    #print(predict_X)
 
-    predict_Y = model.predict(predict_X).reshape(1, -1)
-    predict_Y *= mean_std_Y[1]
-    predict_Y += mean_std_Y[0]
 
-    ctx["response"]["ai_response"]["am"]=float(predict_Y[0][0])
-    ctx["response"]["ai_response"]["delta"]=float(predict_Y[0][1])
-    ctx["response"]["ai_response"]["R1"]=float(predict_Y[0][2])
-    ctx["response"]["ai_response"]["wmw"]=float(predict_Y[0][3])
-    ctx["response"]["ai_response"]["wmt"]=float(predict_Y[0][4])
-    
-   # print(ctx["response"]["ai_response"])
 
-    predict_result_file = "predict_result"
-    np.save(predict_result_file, predict_Y)
 
-    os.chdir('..')
-    print(os.getcwd())
+	os.chdir('..')
 
-    return ctx
+	return(ctx)
+"""
+	data_X.append([
+				  input_parameter['P_o'],
+				  input_parameter['Copper_loss'],
+				  input_parameter['eff'],
+				  input_parameter['Vrms'],
+				  input_parameter['Torque_ripple']
+				  ])
+
+	data_Y.append([
+				  input_parameter['am'],
+				  input_parameter['delta'],
+				  input_parameter['R1'],
+				  input_parameter['wmt'],
+				  input_parameter['wmw']
+				  ])
+
+"""
+
+if __name__ == '__main__':
+
+	ctx_json='{\
+			"stator_OD_limit": 120,\
+			"max_power": 5000,\
+			"voltage_dc": 48,\
+			"max_torque_nm": 27,\
+			"max_speed_rpm": 5000,\
+			"export_path": null,\
+			"pj_key": null,\
+			"res_url": null,\
+			"eff":0.9,\
+			"Vrms":41,\
+			"Torque_ripple":0.02\
+			}'
+	ctx=json.loads(ctx_json)
+
+	ai_train(ctx)

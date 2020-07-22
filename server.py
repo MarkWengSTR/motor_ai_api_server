@@ -46,9 +46,10 @@ def motor_ai():
                 "delta":None,
                 "R1":None,
                 "wmt":None,
-                "wmw":None
+                "wmw":None,
+                "Warning": ""
                 },
-            "pj_key": ori_request_data,
+            "pj_key": ori_request_data["pj_key"],
             "stator_OD": 70,
             "motor_length": 200,
             "coil_turn":5,
@@ -95,12 +96,12 @@ def motor_ai():
             result_process(ctx)
 
         # send result to url in spec
-#        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+        #response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
-#        print(response.status_code)
+        #print(response.content)
 
         # for local test
-        return jsonify(ctx["response"]) 
+        return jsonify(ctx["response"])
     else:
         return jsonify(ctx["error"]["validate"])
 
