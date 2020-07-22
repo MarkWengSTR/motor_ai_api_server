@@ -46,7 +46,8 @@ def motor_ai():
                 "delta":None,
                 "R1":None,
                 "wmt":None,
-                "wmw":None
+                "wmw":None,
+                "Warning": ""
                 },
             "pj_key": ori_request_data["pj_key"],
             "stator_OD": 70,
