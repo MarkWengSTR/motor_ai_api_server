@@ -53,6 +53,7 @@ def motor_ai():
             "stator_OD": 70,
             "motor_length": 200,
             "coil_turn":5,
+            "stator_OD": 62.5,
             "model_picture_path": None,
             "ele_ang_x_axis": [],
             "corner_point": {
