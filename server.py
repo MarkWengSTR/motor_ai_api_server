@@ -50,14 +50,14 @@ def motor_ai():
                 "Warning": ""
                 },
             "pj_key": ori_request_data["pj_key"],
-            "stator_OD": 70,
-            "motor_length": 200,
-            "coil_turn":5,
+            "stator_OD": 62.5,
+            "motor_length": 150,
+            "coil_turn":3,
             "model_picture_path": None,
             "ele_ang_x_axis": [],
             "corner_point": {
-                "current": 140,
-                "speed": 2865,
+                "current": 80,
+                "speed": 3000,
                 "torque_data": [],
                 "avg_torque": None,
                 "torque_ripple": None,
@@ -96,9 +96,9 @@ def motor_ai():
             result_process(ctx)
 
         # send result to url in spec
-        response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+        #response = requests.post(ctx["request"]["res_url"], json=ctx["response"], headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
 
-        print(response.content)
+        #print(response.content)
 
         # for local test
         return jsonify(ctx["response"])
