@@ -17,15 +17,6 @@ class AI_Motor_Design():
 		self.motor_name = "4kw_motor"
 		
 		
-	def ANN_default_process(self):####
-		ANN=ANN_Training()####
-		ANN.input_setting()
-		ANN.model_training()
-		ANN.config_save()
-		ANN.output_config()
-		
-		
-		
 	def setting_training_data(self):
 		Torque_file=os.listdir("training_data/"+self.motor_name+"/Torque/")
 		Voltage_file=os.listdir("training_data/"+self.motor_name+"/Voltage/")
@@ -74,6 +65,15 @@ class ANN_Training(AI_Motor_Design):
 						  'wmt',
 						  'wmw'
 						 ]
+						 
+						 
+	def ANN_default_process(self):
+
+		self.input_setting()
+		self.model_training()
+		self.config_save()
+		self.output_config()
+		
 	def do_zscore(self,dataset, save_path="zscore.txt"):
 		mean_list = np.mean(dataset, axis=0)
 		dataset = dataset - mean_list
@@ -204,8 +204,9 @@ class ANN_Training(AI_Motor_Design):
 		
 		
 if __name__=="__main__":
-	new=AI_Motor_Design()
-	new.setting_training_data()
-	new.ANN_default_process()
+	motor=AI_Motor_Design()
+	motor.setting_training_data()
+	ANN=ANN_Training()
+	ANN.ANN_default_process()
 
 
